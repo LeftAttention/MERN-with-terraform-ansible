@@ -1,0 +1,36 @@
+---
+- name: Setup Database Server
+  hosts: dbserver
+  become: yes
+
+  tasks:
+    - name: Install MongoDB
+      apt:
+        name: mongodb
+        state: present
+        update_cache: yes
+
+    - name: Start MongoDB
+      service:
+        name: mongodb
+        state: started
+        enabled: yes
+
+    - name: Clone MERN application repository
+      git:
+        repo: 'https://github.com/leftattention/MERN-with-terraform-ansible.git'
+        dest: /home/ubuntu/MERN-with-terraform-ansible
+        clone: yes
+        update: yes
+
+    - name: Install NPM dependencies for backend
+      shell: npm install
+      args:
+        chdir: /home/ubuntu/MERN-with-terraform-ansible/backend
+
+    - name: Start the backend application
+      shell: node index.js
+      args:
+        chdir: /home/ubuntu/MERN-with-terraform-ansible/backend
+      async: 60
+      poll: 0

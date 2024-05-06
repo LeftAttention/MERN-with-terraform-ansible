@@ -1,0 +1,27 @@
+---
+- name: Setup Web Server
+  hosts: webserver
+  become: yes
+
+  tasks:
+    - name: Install Node.js and NPM
+      shell: curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && sudo apt-get install -y nodejs
+
+    - name: Clone MERN application repository
+      git:
+        repo: 'https://github.com/leftattention/MERN-with-terraform-ansible.git'
+        dest: /home/ubuntu/MERN-with-terraform-ansible
+        clone: yes
+        update: yes
+
+    - name: Install NPM dependencies for frontend
+      shell: npm install
+      args:
+        chdir: /home/ubuntu/MERN-with-terraform-ansible/frontend
+
+    - name: Start the frontend application
+      shell: npm start
+      args:
+        chdir: /home/ubuntu/MERN-with-terraform-ansible/frontend
+      async: 60
+      poll: 0

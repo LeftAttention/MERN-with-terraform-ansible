@@ -1,0 +1,51 @@
+---
+- name: Harden Server Security
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update all packages to the latest version
+      apt:
+        update_cache: yes
+        upgrade: 'dist'
+
+    - name: Install and configure Uncomplicated Firewall (UFW)
+      block:
+        - name: Install UFW
+          apt:
+            name: ufw
+            state: present
+
+        - name: Deny all incoming by default
+          ufw:
+            policy: deny
+            direction: incoming
+
+        - name: Allow all outgoing by default
+          ufw:
+            policy: allow
+            direction: outgoing
+
+        - name: Allow SSH
+          ufw:
+            rule: allow
+            port: 22
+
+        - name: Allow HTTP and HTTPS
+          ufw:
+            rule: allow
+            port: '{{ item }}'
+          loop:
+            - 80
+            - 443
+
+        - name: Enable UFW
+          ufw:
+            state: enabled
+
+    - name: Secure SSH Configuration
+      blockinfile:
+        path: /etc/ssh/sshd_config
+        block: |
+          PermitRootLogin no
+          PasswordAuthentication no
+          AllowUsers ubuntu

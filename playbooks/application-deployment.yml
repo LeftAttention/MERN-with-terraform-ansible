@@ -1,0 +1,23 @@
+---
+- name: Deploy MERN Application
+  hosts: all
+  become: yes
+  tasks:
+    - name: Set Environment Variables for Backend
+      lineinfile:
+        path: /home/ubuntu/MERN-with-terraform-ansible/backend/.env
+        line: "{{ item }}"
+      with_items:
+        - "MONGO_URI=localhost"
+        - "PORT=3000"
+
+    - name: Restart backend application
+      shell: pm2 restart all
+      args:
+        chdir: /home/ubuntu/MERN-with-terraform-ansible/backend
+
+    - name: Ensure frontend communicates with backend
+      lineinfile:
+        path: /home/ubuntu/MERN-with-terraform-ansible/frontend/.env
+        line: "REACT_APP_BACKEND_URL=http://{{ hostvars['web1'].ansible_host }}:3000"
+        create: yes
